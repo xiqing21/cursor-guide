@@ -421,45 +421,118 @@
 
                 // 绘制蛇
                 this.snake.forEach((segment, index) => {
+                    const x = segment.x * this.gridSize;
+                    const y = segment.y * this.gridSize;
+                    const centerX = x + this.gridSize / 2;
+                    const centerY = y + this.gridSize / 2;
+
                     if (index === 0) {
-                        // 蛇头
-                        const gradient = this.ctx.createLinearGradient(
-                            segment.x * this.gridSize, 
-                            segment.y * this.gridSize,
-                            segment.x * this.gridSize + this.gridSize, 
-                            segment.y * this.gridSize + this.gridSize
+                        // 蛇头 - 圆形设计
+                        const headGradient = this.ctx.createRadialGradient(
+                            centerX - 3, centerY - 3, 0,
+                            centerX, centerY, this.gridSize / 2
                         );
-                        gradient.addColorStop(0, '#4CAF50');
-                        gradient.addColorStop(1, '#2E7D32');
-                        this.ctx.fillStyle = gradient;
+                        headGradient.addColorStop(0, '#FFD700');
+                        headGradient.addColorStop(0.6, '#FF8C00');
+                        headGradient.addColorStop(1, '#FF4500');
+
+                        // 绘制蛇头主体
+                        this.ctx.fillStyle = headGradient;
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX, centerY, this.gridSize / 2 - 2, 0, 2 * Math.PI);
+                        this.ctx.fill();
+
+                        // 绘制眼睛
+                        const eyeSize = 3;
+                        const eyeOffset = 4;
+                        
+                        // 根据移动方向调整眼睛位置
+                        let eyeX1, eyeY1, eyeX2, eyeY2;
+                        if (this.dx === 1) { // 向右
+                            eyeX1 = centerX + 2;
+                            eyeY1 = centerY - 3;
+                            eyeX2 = centerX + 2;
+                            eyeY2 = centerY + 3;
+                        } else if (this.dx === -1) { // 向左
+                            eyeX1 = centerX - 2;
+                            eyeY1 = centerY - 3;
+                            eyeX2 = centerX - 2;
+                            eyeY2 = centerY + 3;
+                        } else if (this.dy === -1) { // 向上
+                            eyeX1 = centerX - 3;
+                            eyeY1 = centerY - 2;
+                            eyeX2 = centerX + 3;
+                            eyeY2 = centerY - 2;
+                        } else { // 向下或静止
+                            eyeX1 = centerX - 3;
+                            eyeY1 = centerY + 2;
+                            eyeX2 = centerX + 3;
+                            eyeY2 = centerY + 2;
+                        }
+
+                        // 白色眼底
+                        this.ctx.fillStyle = 'white';
+                        this.ctx.beginPath();
+                        this.ctx.arc(eyeX1, eyeY1, eyeSize, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.beginPath();
+                        this.ctx.arc(eyeX2, eyeY2, eyeSize, 0, 2 * Math.PI);
+                        this.ctx.fill();
+
+                        // 黑色瞳孔
+                        this.ctx.fillStyle = 'black';
+                        this.ctx.beginPath();
+                        this.ctx.arc(eyeX1, eyeY1, eyeSize - 1, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.beginPath();
+                        this.ctx.arc(eyeX2, eyeY2, eyeSize - 1, 0, 2 * Math.PI);
+                        this.ctx.fill();
+
+                        // 白色高光点
+                        this.ctx.fillStyle = 'white';
+                        this.ctx.beginPath();
+                        this.ctx.arc(eyeX1 - 0.5, eyeY1 - 0.5, 0.8, 0, 2 * Math.PI);
+                        this.ctx.fill();
+                        this.ctx.beginPath();
+                        this.ctx.arc(eyeX2 - 0.5, eyeY2 - 0.5, 0.8, 0, 2 * Math.PI);
+                        this.ctx.fill();
+
                     } else {
-                        // 蛇身
-                        const gradient = this.ctx.createLinearGradient(
-                            segment.x * this.gridSize, 
-                            segment.y * this.gridSize,
-                            segment.x * this.gridSize + this.gridSize, 
-                            segment.y * this.gridSize + this.gridSize
+                        // 蛇身 - 圆形连接设计
+                        const intensity = 1 - (index / this.snake.length) * 0.3; // 渐变强度
+                        const bodyGradient = this.ctx.createRadialGradient(
+                            centerX - 2, centerY - 2, 0,
+                            centerX, centerY, this.gridSize / 2
                         );
-                        gradient.addColorStop(0, '#81C784');
-                        gradient.addColorStop(1, '#4CAF50');
-                        this.ctx.fillStyle = gradient;
+                        
+                        bodyGradient.addColorStop(0, `rgba(255, 215, 0, ${intensity})`);
+                        bodyGradient.addColorStop(0.5, `rgba(255, 140, 0, ${intensity * 0.8})`);
+                        bodyGradient.addColorStop(1, `rgba(255, 69, 0, ${intensity * 0.6})`);
+
+                        // 绘制蛇身主体
+                        this.ctx.fillStyle = bodyGradient;
+                        this.ctx.beginPath();
+                        this.ctx.arc(centerX, centerY, this.gridSize / 2 - 2, 0, 2 * Math.PI);
+                        this.ctx.fill();
+
+                        // 添加蛇身纹理 - 小圆点
+                        if (index % 2 === 0) {
+                            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                            this.ctx.beginPath();
+                            this.ctx.arc(centerX - 2, centerY - 2, 1.5, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                            this.ctx.beginPath();
+                            this.ctx.arc(centerX + 2, centerY + 2, 1.5, 0, 2 * Math.PI);
+                            this.ctx.fill();
+                        }
                     }
 
-                    this.ctx.fillRect(
-                        segment.x * this.gridSize + 2, 
-                        segment.y * this.gridSize + 2, 
-                        this.gridSize - 4, 
-                        this.gridSize - 4
-                    );
-
-                    // 添加光泽效果
-                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                    this.ctx.fillRect(
-                        segment.x * this.gridSize + 4, 
-                        segment.y * this.gridSize + 4, 
-                        this.gridSize - 12, 
-                        4
-                    );
+                    // 为所有身体部分添加外边框
+                    this.ctx.strokeStyle = 'rgba(139, 69, 19, 0.5)';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX, centerY, this.gridSize / 2 - 2, 0, 2 * Math.PI);
+                    this.ctx.stroke();
                 });
 
                 // 绘制食物
